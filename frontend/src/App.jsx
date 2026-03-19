@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "http://localhost:5000/api" : `${window.location.origin}/api`)
+).replace(/\/$/, "");
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -27,7 +30,10 @@ function App() {
       const data = await response.json();
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err.message || "Failed to load products");
+      setError(
+        err.message ||
+          `Failed to load products from ${API_BASE}/get-products`
+      );
     } finally {
       setLoading(false);
     }
@@ -47,7 +53,10 @@ function App() {
 
       await loadProducts();
     } catch (err) {
-      setError(err.message || "Failed to save products");
+      setError(
+        err.message ||
+          `Failed to save products using ${API_BASE}/save-products`
+      );
     } finally {
       setSaving(false);
     }
@@ -100,6 +109,11 @@ function App() {
       </section>
 
       {error && <p className="status-message error-message">{error}</p>}
+      {!error && (
+        <p className="status-message api-message">
+          API Base: <code>{API_BASE}</code>
+        </p>
+      )}
 
       {!loading && !error && products.length === 0 && (
         <p className="status-message">
